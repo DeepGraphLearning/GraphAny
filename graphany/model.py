@@ -37,10 +37,9 @@ class GraphAny(nn.Module):
                 y_feat[i, :, :].cpu().numpy(), self.entropy
             )
 
-        # Create dist as a numpy array
+        # Compute pairwise distances between channels n_channels(n_channels-1)/2 total features
         dist = np.zeros((bsz, self.dist_feat_dim), dtype=np.float32)
 
-        # Compute pairwise distances between channels n_channels(n_channels-1)/2 total features
         pair_index = 0
         for c in range(n_channel):
             for c_prime in range(n_channel):
@@ -52,14 +51,13 @@ class GraphAny(nn.Module):
         return dist
 
     def forward(self, logit_dict, dist=None, **kwargs):
-        # Label logits tensor of shape (batch_size, n_channels, * n_classes)
+        # logit_dict: key: channel, value: prediction of shape (batch_size, n_classes)
         y_feat = torch.stack([logit_dict[c] for c in self.feat_channels], dim=1)
         y_pred = torch.stack([logit_dict[c] for c in self.pred_channels], dim=1)
 
         # ! Fuse y_pred with attentions
-        # Compute attention of (batch_size, n_channels)
         dist = self.compute_dist(y_feat) if dist is None else dist
-        # Project pairwise differences to the attention scores via MLP
+        # Project pairwise differences to the attention scores (batch_size, n_channels)
         attention = self.mlp(dist)
         attention = th.softmax(attention / self.att_temperature, dim=-1)
         fused_y = th.sum(

@@ -18,7 +18,7 @@ from rich.pretty import pretty_repr
 mean = lambda input: np.round(np.mean(input).item(), 2)
 
 
-class InductiveLabelPred(pl.LightningModule):
+class InductiveNodeClassification(pl.LightningModule):
     def __init__(self, cfg, combined_dataset, checkpoint=None):
         super().__init__()
         self.cfg = cfg
@@ -73,8 +73,6 @@ class InductiveLabelPred(pl.LightningModule):
             return f"ind/{ds_name.lower()[:4]}_{split}_acc"
 
     def configure_optimizers(self):
-        num_devices = self.cfg.gpus if self.cfg.gpus > 0 else 1
-
         # start with all the candidate parameters
         param_dict = {pn: p for pn, p in self.named_parameters()}
         # filter out those that do not require grad
@@ -101,7 +99,7 @@ class InductiveLabelPred(pl.LightningModule):
         else:  # AdamW
             optimizer = torch.optim.AdamW(
                 optim_groups,
-                lr=self.cfg.lr * num_devices,
+                lr=self.cfg.lr,
                 weight_decay=self.cfg.weight_decay,
             )
         return optimizer
@@ -117,9 +115,6 @@ class InductiveLabelPred(pl.LightningModule):
         for metrics_dict in self.metrics.values():
             for metric in metrics_dict.values():
                 metric.to(self.device)
-        # Example for a direct metric attribute
-        if hasattr(self, "accuracy"):
-            self.accuracy.to(self.device)
 
     def predict(self, ds, nodes, input, is_training=False):
         # Use preprocessed distance during evaluation
@@ -259,7 +254,7 @@ def main(cfg: DictConfig):
 
     combined_dataset = CombinedDataset(train_ds_dict, eval_ds_dict, cfg)
 
-    model = InductiveLabelPred(cfg, combined_dataset, cfg.get("prev_ckpt"))
+    model = InductiveNodeClassification(cfg, combined_dataset, cfg.get("prev_ckpt"))
     # Set up the checkpoint callback to save only at the end of training
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=cfg.dirs.output,  # specify where to save

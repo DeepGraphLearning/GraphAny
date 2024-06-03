@@ -12,7 +12,6 @@ import dgl.function as fn
 import numpy as np
 import pytorch_lightning as pl
 import torch
-import torch.nn.functional as F
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 from scipy.spatial.distance import pdist, squareform
@@ -25,15 +24,13 @@ from torch.utils.data import DataLoader
 from graphany.utils import logger, timer
 
 
-def get_entropy_normed_cond_gaussian_prob(
-    X, entropy, beta_list=None, metric="euclidean", use_cpython=False, return_beta=False
-):
+def get_entropy_normed_cond_gaussian_prob(X, entropy, metric="euclidean"):
     """
     Parameters
     ----------
     X:              The matrix for pairwise similarity
     entropy:     Perplexity of the conditional prob distribution
-    Returns conditional probability
+    Returns the entropy-normalized conditional gaussian probability based on distances.
     -------
     """
 
@@ -175,30 +172,28 @@ class CombinedDataset(pl.LightningDataModule):
         sub_dataloaders = {
             name: ds.val_dataloader() for name, ds in self.eval_ds_dict.items()
         }
-        return pl.utilities.combined_loader.CombinedLoader(
-            sub_dataloaders, "max_size"
-        )  # Use max_size instead of max_size_cycle to avoid duplicates
+        # Use max_size instead of max_size_cycle to avoid repeated evaluation on small datasets
+        return pl.utilities.combined_loader.CombinedLoader(sub_dataloaders, "max_size")
 
     def test_dataloader(self):
         sub_dataloaders = {
             name: ds.test_dataloader() for name, ds in self.eval_ds_dict.items()
         }
-        return pl.utilities.combined_loader.CombinedLoader(
-            sub_dataloaders, "max_size"
-        )  # Use max_size instead of max_size_cycle to avoid duplicates
+        # Use max_size instead of max_size_cycle to avoid repeated evaluation on small datasets
+        return pl.utilities.combined_loader.CombinedLoader(sub_dataloaders, "max_size")
 
 
 class GraphDataset(pl.LightningDataModule):
     def __init__(
-        self,
-        cfg,
-        ds_name,
-        cache_dir,
-        train_batch_size=256,
-        val_test_batch_size=256,
-        n_hops=1,
-        preprocess_device=torch.device("cpu"),
-        permute_label=False,
+            self,
+            cfg,
+            ds_name,
+            cache_dir,
+            train_batch_size=256,
+            val_test_batch_size=256,
+            n_hops=1,
+            preprocess_device=torch.device("cpu"),
+            permute_label=False,
     ):
         super().__init__()
         self.cfg = cfg
@@ -369,9 +364,9 @@ class GraphDataset(pl.LightningDataModule):
             label = dataset.y
 
             if (
-                hasattr(dataset, "train_mask")
-                and hasattr(dataset, "val_mask")
-                and hasattr(dataset, "test_mask")
+                    hasattr(dataset, "train_mask")
+                    and hasattr(dataset, "val_mask")
+                    and hasattr(dataset, "test_mask")
             ):
                 train_mask, val_mask, test_mask = (
                     dataset.train_mask,
@@ -399,9 +394,8 @@ class GraphDataset(pl.LightningDataModule):
             # ! Multiple splits
             # Modified: Use the ${seed} split if not specified!
             split_index = self.data_init_args.get("split", self.cfg.seed)
-            self.split_index = split_index = (
-                split_index % train_mask.ndim
-            )  # Avoid invalid seed value
+            # Avoid invalid split index
+            self.split_index = split_index = (split_index % train_mask.ndim)
             train_mask = train_mask[:, split_index].squeeze()
             val_mask = val_mask[:, split_index].squeeze()
             if test_mask.ndim == 2:
@@ -422,29 +416,31 @@ class GraphDataset(pl.LightningDataModule):
         return g, label, feat, train_mask, val_mask, test_mask, num_class
 
     def compute_linear_gnn_logits(
-        self, features, n_per_label_examples, visible_nodes, bootstrap=False
+            self, features, n_per_label_examples, visible_nodes, bootstrap=False
     ):
+        # Compute and save LinearGNN logits into a dict. Note the computation is on CPU as torch does not support
+        # the gelss driver on GPU currently.
         preds = {}
         label, num_class, device = self.label, self.num_class, torch.device("cpu")
         label = label.to(device)
         visible_nodes = visible_nodes.to(device)
-        for channel, X in features.items():
-            X = X.to(device)
+        for channel, F in features.items():
+            F = F.to(device)
             if bootstrap:
                 ref_nodes = sample_k_nodes_per_label(
                     label, visible_nodes, n_per_label_examples, num_class
                 )
             else:
                 ref_nodes = visible_nodes
-            Y_L = F.one_hot(label[ref_nodes], num_class).float()
+            Y_L = torch.nn.functional.one_hot(label[ref_nodes], num_class).float()
             with timer(
-                f"Solving with CPU driver (N={len(ref_nodes)}, d={X.shape[1]}, k={num_class})",
-                logger.debug,
+                    f"Solving with CPU driver (N={len(ref_nodes)}, d={F.shape[1]}, k={num_class})",
+                    logger.debug,
             ):
                 W = torch.linalg.lstsq(
-                    X[ref_nodes.cpu()].cpu(), Y_L.cpu(), driver="gelss"
+                    F[ref_nodes.cpu()].cpu(), Y_L.cpu(), driver="gelss"
                 )[0]
-            preds[channel] = X @ W
+            preds[channel] = F @ W
 
         return preds
 
@@ -466,8 +462,8 @@ class GraphDataset(pl.LightningDataModule):
         if not os.path.exists(self.cache_f_name):
             g = g.to(self.preprocess_device)
             with timer(
-                f"Computing {self.name} message passing and normalized predictions to file {self.cache_f_name}",
-                logger.info,
+                    f"Computing {self.name} message passing and normalized predictions to file {self.cache_f_name}",
+                    logger.info,
             ):
                 dim = input_feats.size(1)
                 LP = torch.zeros(n_hops, g.number_of_nodes(), dim).to(
@@ -504,9 +500,9 @@ class GraphDataset(pl.LightningDataModule):
             features, unmasked_pred = torch.load(self.cache_f_name, map_location="cpu")
         if not os.path.exists(self.dist_f_name):
             with timer(
-                f"Computing {self.name} conditional gaussian distances "
-                f"to file {self.dist_f_name}",
-                logger.info,
+                    f"Computing {self.name} conditional gaussian distances "
+                    f"and save to {self.dist_f_name}",
+                    logger.info,
             ):
                 # y_feat: n_nodes, n_channels, n_labels
                 y_feat = np.stack(
@@ -532,7 +528,6 @@ class GraphDataset(pl.LightningDataModule):
                             dist[:, pair_index] = cond_gaussian_prob[:, c, c_prime]
                             pair_index += 1
 
-                # Convert dist to a PyTorch tensor and move it to the same device as y_feat
                 dist = torch.from_numpy(dist)
                 torch.save(dist, self.dist_f_name)
         else:
