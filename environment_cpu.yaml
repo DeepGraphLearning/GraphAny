@@ -1,0 +1,31 @@
+name: graphany_cpu
+channels:
+  - pytorch
+  - pyg
+  - conda-forge
+  - defaults
+  - dglteam
+dependencies:
+  - python=3.10  
+  - pytorch=2.1
+  # - pyg  # pyg on cpu in conda is a mess
+  - torchvision
+  - torchaudio
+  - torchdata
+  - dgl
+  - lightning=2.*
+  - pydantic
+  - wandb
+  - rich
+  - hydra-core
+  # - jupyter  # uncomment if you want to run jupyter notebooks
+  - einops
+  - pip
+  - pip:
+      - torch-geometric  # we only need pyg for datasets, installing it from pip
+      - ogb
+      - rootutils
+      - hydra_colorlog
+      # For time logging
+      - codetiming
+      - humanfriendly

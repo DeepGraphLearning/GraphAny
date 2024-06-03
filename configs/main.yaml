@@ -1,0 +1,53 @@
+# @package _global_
+defaults:
+  - _self_
+  - /data
+  - /model
+  - optional user: env # optional environment settings to add
+  - override /hydra/hydra_logging@_group_: none # Disable Hydra logging
+  - override /hydra/job_logging@_group_: none # Disable Hydra logging
+
+# ! Path
+project_root: ${hydra:runtime.cwd}
+dirs:
+  data_cache: ${project_root}/data_cache/ # Removable data cache
+  data_storage: ${project_root}/data/ # Raw data files that shouldn't be removed
+  temp: ${project_root}/temp/working_dir/${uid}/ # Removable experiment cache
+  lightning_root: ${project_root}/temp/lightning_root/
+  hydra: ${.temp}hydra/
+  output: ${project_root}/output/${model.name}/${uid}-${alias}/ # For files to be saved, to be initialized
+  wandb_cache: ${oc.select:env.vars.wandb_cache_dir,${oc.env:WANDB_CACHE_DIR,temp/wandb_cache/}}
+
+res_file: ${dirs.output}seed${seed}_results.json
+
+# ! Experiments
+uid: null # To be generated in the main program
+seed: 0
+eval_freq: 5
+
+# ! Wandb settings
+project: GraphAny
+_alias: ${dataset}-${oc.select:model.alias,${oc.select:model.name,''}}
+alias: ${rename_alias:${_alias}}
+use_wandb: false
+
+# Change the settings below to your own settings
+wandb_proj: ${oc.select:env.vars.wandb_proj,${oc.env:WANDB_PROJ,null}}
+wandb_entity: ${oc.select:env.vars.wandb_entity,${oc.env:WANDB_ENTITY,null}}
+wandb:
+  id: null
+  name: ${alias}
+  tags: debug # Wandb tags separated by '.'
+  project: ${wandb_proj}
+  entity: ${wandb_entity}
+
+logging:
+  level: info
+  enable_stdout_log: true
+  log_wandb_metric_to_stdout: False
+  prefix: ''
+
+# @ Hydra
+hydra:
+  run:
+    dir: ${dirs.hydra}

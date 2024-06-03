@@ -1,0 +1,132 @@
+# @package _global_
+
+# ! Dataset Preprocessing
+add_self_loop: false
+to_bidirected: true
+n_hops: 2
+
+# ! Train and Evaluation Dataset Lookup
+dataset: Debug
+preprocess_device: gpu # Set to cpu if your GPU memory is below 32GB
+train_datasets: ${oc.select:_dataset_lookup.${dataset}.train,${dataset}}
+eval_datasets: ${oc.select:_dataset_lookup.${dataset}.eval,${dataset}}
+_trans_datasets: [ Arxiv, Product, Cora, Wisconsin ]
+
+_all_datasets: [
+  Arxiv,
+  Cora,
+  FCora,
+  Citeseer,
+  DBLP,
+  Pubmed,
+  Wiki,
+  WkCS,
+  Reddit,
+
+  Product,
+  AmzComp,
+  AmzPhoto,
+  BlogCatalog,
+  LastFMAsia,
+  Deezer,
+
+  CoCS,
+  CoPhysics,
+  Cornell,
+  Texas,
+  Wisconsin,
+  AirBrazil,
+  AirUS,
+  AirEU,
+
+  Chameleon,
+  Actor,
+  Squirrel,
+  Roman,
+  AmzRatings,
+  Minesweeper,
+  Tolokers,
+  Questions,
+]
+
+_dataset_lookup:
+  Debug:
+    train: [ Wisconsin ]
+    eval: [ Texas ]
+  CoraXAll:
+    train: [ Cora ]
+    eval: ${_all_datasets}
+  WisXAll:
+    train: [ Wisconsin ]
+    eval: ${_all_datasets}
+  ArxivXAll:
+    train: [ Arxiv ]
+    eval: ${_all_datasets}
+  ProdXAll:
+    train: [ Product ]
+    eval: ${_all_datasets}
+
+  # Train on Arxiv, inference on Cora and Citeseer
+  CoraCiteInference:
+    train: [ Arxiv ]
+    eval: [ Cora, Citeseer ]
+
+# ! Dataset Meta Data
+_ds_meta_data:
+  # Format: Tuple of 3 (Interface, Alias: ${collection}.${name} if PYG else dgl_target_name)
+  # Comments: Nodes, Edges, Features, Classes
+  # ! Document Topic Classification: Nodes are documents, edges are references/citations/written-by-same-author, goal is to classify the topic of document
+  Arxiv: ogb, ogbn-arxiv # 168,343 1,166,243 100 40
+  Cora: pyg, Planetoid.Cora # 2,708 10,556 1,433 7
+  FCora: pyg, CitationFull.Cora # 19,793 126,842 8,710 70
+  Citeseer: pyg, Planetoid.CiteSeer # 3,327 9,104 3,703 6
+  DBLP: pyg, CitationFull.DBLP # 17,716 105,734 1,639 4
+  Pubmed: pyg, Planetoid.PubMed # 19,717 88,648 500 3
+  Wiki: pyg, AttributedGraphDataset.Wiki # 2,405 17,981 4,973 17
+  WkCS: pyg, WikiCS # 11,701, 431,726 300 10
+  # nodes (posts) are connected if they are posted by same user, labels are "subreddit"
+  Reddit: pyg, Reddit # 232,965 114,615,892 602 41
+
+  # ! Author Field Classification: Nodes are authors, edges are co-author,  goal is to classify author topic
+  CoCS: pyg, Coauthor.CS # 18,333 163,788 6,805 15
+  CoPhysics: pyg, Coauthor.Physics # 34,493 495,924 8,415 5
+
+  # ! WebKB: nodes represent web pages, and edges are hyperlinks between them. Node features are the bag-of-words representation of web pages. The web pages are manually classified into the five categories, student, project, course, staff, and faculty.
+  Cornell: dgl, CornellDataset # 183 298 1,703 5
+  # ! Use the data preprocessed by (https://arxiv.org/abs/2302.11640) to avoid label issues.
+  Texas: heterophilous, texas_4_classes # 183 325 1,703 4
+  Wisconsin: dgl, WisconsinDataset # 251 515 1,703 5
+
+  # ! Traffic prediction
+  # WikiTraffic: Nodes represent web pages and edges represent hyperlinks between them. Node features represent several informative nouns in the Wikipedia pages. The task is to predict the average daily traffic of the web page.
+  Chameleon: pyg, WikipediaNetwork.chameleon # 5201, 217073, 2089, 5
+  Squirrel: pyg, WikipediaNetwork.squirrel # 2277, 36101, 2325, 5
+
+  AirBrazil: pyg, Airports.Brazil # 131 1,038 131 4
+  AirUS: pyg, Airports.USA # 1,190 13,599 1190 4
+  AirEU: pyg, Airports.Europe # 399 5,995 399 4
+
+  # ! HeterophilousGraphDataset
+  Roman: pyg, HeterophilousGraphDataset.Roman-empire # 22,662 32,927 300 18
+  AmzRatings: pyg, HeterophilousGraphDataset.Amazon-ratings # 24,492 93,050 300 5
+  Minesweeper: pyg, HeterophilousGraphDataset.Minesweeper # 10,000 39,402 7 2
+  Tolokers: pyg, HeterophilousGraphDataset.Tolokers # 11,758 519,000 10 2
+  Questions: pyg, HeterophilousGraphDataset.Questions # 48,921 153,540 301 2
+  # Each node corresponds to an actor, and the edge between two nodes denotes co-occurrence on the same Wikipedia page. Node features correspond to some keywords in the Wikipedia pages. The task is to classify the nodes into five categories in terms of words of actor’s Wikipedia.
+  Actor: pyg, Actor # 7,600 30,019 932 5
+
+
+  # ! Ecommerce
+  AmzComp: pyg, Amazon.Computers # 13,752 491,722 767 10
+  AmzPhoto: pyg, Amazon.Photo # 7,650 238,162 745 8
+  Product: ogb, ogbn-products # 2,449,029 61,859,140 100 47
+
+  # ! Social Network Communities: Community detection in social networks with user description as features.
+  BlogCatalog: pyg, AttributedGraphDataset.BlogCatalog # 5,196 343,486 8,189 6
+  LastFMAsia: pyg, LastFMAsia # 7,624, 55,612, 128, 18
+  # A social network of European Deezer users
+  #which we collected from the public API in March 2020. Nodes
+  #represent users and links are mutual follower relationships
+  #among users. The related classification task is the prediction
+  #of gender using the friendship graph and the artists liked.
+  Deezer: pyg, DeezerEurope # 28,281, 185,504, 128, 2

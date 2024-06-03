@@ -1,0 +1,38 @@
+# @package _global_
+model:
+  name: GraphAny
+wandb_proj: GraphAny
+prev_ckpt: null # Path of pre-trained checkpoint, null for training from scratch.
+
+
+# ! Model parameters
+# GraphAny utilizes the _interactions between predictions_ as features of an MLP to derive inductive attention scores. We dub these predictions of LinearGNNs that serves as feature as "**_feature channels_**", defined as `feat_chn` in the config file. Then the predictions of LinearGNNs are combined using attention scores, these LinearGNN predictions are called "**_prediction channels_**", defined as `pred_chn` in the config file.
+feat_chn: X+L1+L2+H1+H2 # X=Linear, L1=LinearSGC1, L2=LinearSGC2, H1=LinearHGC1, H2=LinearHGC2
+pred_chn: X+L1+L2 # We mask the H1 and H2 Channel for faster convergence.
+feat_channels: ${eval:'"${feat_chn}".split("+")'}
+pred_channels: ${eval:'"${pred_chn}".split("+")'}
+
+# The entropy to normalize the distance features (conditional gaussian distribution). The standard deviation of conditional gaussian distribution is dynamically determined via binary search
+entropy: 1
+attn_temp: 5 # The temperature for normalize attention
+n_hidden: 128 # The hidden dimension of MLP
+n_mlp_layer: 2
+graph_any:
+  n_hidden: ${n_hidden}
+  feat_channels: ${feat_channels}
+  pred_channels: ${pred_channels}
+  entropy: ${entropy}
+  att_temperature: ${attn_temp}
+  n_mlp_layer: ${n_mlp_layer}
+
+# ! Training settings
+limit_train_batches: 1 # Same settings for trans and inductive (only one batch is trained as some datasets are too small).
+n_per_label_examples: 5
+
+gpus: 1 # Only one GPU is needed
+optimizer: adamw
+weight_decay: 0.02
+lr: 0.0002
+total_steps: 1000
+train_batch_size: 128
+val_test_batch_size: 100000

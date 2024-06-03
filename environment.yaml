@@ -1,0 +1,32 @@
+name: graphany
+channels:
+  - pytorch
+  - pyg
+  - nvidia
+  - conda-forge
+  - defaults
+  - dglteam/label/cu118
+dependencies:
+  - python=3.10
+  - cudatoolkit=11.8
+  - pyg
+  - pytorch
+  - torchvision
+  - torchaudio
+  - torchdata
+  - dgl
+  - lightning=2.*
+  - pydantic
+  - wandb
+  - rich
+  - hydra-core
+  - jupyter
+  - einops
+  - pip
+  - pip:
+      - ogb
+      - rootutils
+      - hydra_colorlog
+      # For time logging
+      - codetiming
+      - humanfriendly
