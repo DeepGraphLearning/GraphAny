@@ -13,18 +13,16 @@
 
 Original PyTorch implementation of [GraphAny].
 
-Authored by [Jianan Zhao], [Hesham Mostafa], [Michael Galkin], [Michael Bronstein],
+Authored by [Jianan Zhao], [Hesham Mostafa], [Mikhail Galkin], [Michael Bronstein],
 [Zhaocheng Zhu], and [Jian Tang].
 
 [Jianan Zhao]: https://andyjzhao.github.io/
 [Hesham Mostafa]: https://www.linkedin.com/in/hesham-mostafa-79ba93237
 [Zhaocheng Zhu]: https://kiddozhu.github.io
-[Michael Galkin]: https://migalkin.github.io/
+[Mikhail Galkin]: https://migalkin.github.io/
 [Michael Bronstein]: https://www.cs.ox.ac.uk/people/michael.bronstein/
 [Jian Tang]: https://jian-tang.com/
 [GraphAny]: https://github.com/AndyJZhao/GraphAny
-
-Links to be updated later.
 
 ## Overview ##
 
@@ -118,7 +116,7 @@ This step is necessary only if you are not using our pre-processed data. If you
 choose to use our provided datasets, you can skip this step and proceed directly to
 Step 3.
 
-**Step 3**: Inference using pre-trained model using command:
+**Step 3**: Run inference with pre-trained model using command:
 
 ```bash
 python graphany/run.py prev_ckpt=checkpoints/graph_any_arxiv.pt total_steps=0 dataset=CoraCiteInference
@@ -382,7 +380,7 @@ If you find this codebase useful in your research, please cite the paper.
 ```bibtex
 @article{zhao2024graphany,
       title={GraphAny: A Foundation Model for Node Classification on Any Graph}, 
-      author={Jianan Zhao and Hesham Mostafa and Michael Galkin and Michael Bronstein and Zhaocheng Zhu and Jian Tang},
+      author={Jianan Zhao and Hesham Mostafa and Mikhail Galkin and Michael Bronstein and Zhaocheng Zhu and Jian Tang},
       year={2024},
       eprint={2405.20445},
       archivePrefix={arXiv},
