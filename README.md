@@ -22,7 +22,7 @@ Authored by [Jianan Zhao], [Hesham Mostafa], [Mikhail Galkin], [Michael Bronstei
 [Mikhail Galkin]: https://migalkin.github.io/
 [Michael Bronstein]: https://www.cs.ox.ac.uk/people/michael.bronstein/
 [Jian Tang]: https://jian-tang.com/
-[GraphAny]: https://github.com/AndyJZhao/GraphAny
+[GraphAny]: http://arxiv.org/abs/2405.20445
 
 ## Overview ##
 
