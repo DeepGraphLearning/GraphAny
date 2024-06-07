@@ -34,7 +34,7 @@ spaces. Performance-wise, averaged on 30+ graphs, a single pre-trained GraphAny 
 is better **_in inference mode_** than many supervised models (e.g., MLP, GCN, GAT)
 trained specifically for each graph. Following the pretrain-inference paradigm of
 foundation models, you can perform training from scratch and inference on 30 datasets
-as shown in [Training from scratch](#training-foundation-models-from-scratch-).
+as shown in [Training from scratch](#training-foundation-models-from-scratch).
 
 This repository is based on PyTorch 2.1, Pytorch-Lightning 2.2, PyG 2.4, DGL 2.1, and Hydra 1.3.
 
@@ -111,7 +111,7 @@ _dataset_lookup:
     eval: [ Cora, Citeseer ]
 ```
 
-**Step 2** _(optional)_: Define your dataset processing logic in graph_any/data.py. Please go through the [Bring Your Own Dataset](#bring-your-own-dataset-) section.
+**Step 2** _(optional)_: Define your dataset processing logic in graph_any/data.py. Please go through the [Bring Your Own Dataset](#bring-your-own-dataset) section.
 This step is necessary only if you are not using our pre-processed data. If you
 choose to use our provided datasets, you can skip this step and proceed directly to
 Step 3.
