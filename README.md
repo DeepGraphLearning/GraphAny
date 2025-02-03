@@ -1,6 +1,6 @@
 <div align="center">
 
-# GraphAny: A Foundation Model for Node Classification on Any Graph #
+# GraphAny: Fully-inductive Node Classification on Arbitrary Graphs #
 
 [![pytorch](https://img.shields.io/badge/PyTorch_2.1+-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/get-started/locally/)
 [![lightning](https://img.shields.io/badge/-Lightning_2.2+-792ee5?logo=pytorchlightning&logoColor=white)](https://pytorchlightning.ai/)
@@ -13,28 +13,28 @@
 
 Original PyTorch implementation of [GraphAny].
 
-Authored by [Jianan Zhao], [Hesham Mostafa], [Mikhail Galkin], [Michael Bronstein],
-[Zhaocheng Zhu], and [Jian Tang].
+Authored by [Jianan Zhao], [Zhaocheng Zhu], [Mikhail Galkin], [Hesham Mostafa], [Michael Bronstein],
+and [Jian Tang].
 
 [Jianan Zhao]: https://andyjzhao.github.io/
-[Hesham Mostafa]: https://www.linkedin.com/in/hesham-mostafa-79ba93237
 [Zhaocheng Zhu]: https://kiddozhu.github.io
 [Mikhail Galkin]: https://migalkin.github.io/
+[Hesham Mostafa]: https://www.linkedin.com/in/hesham-mostafa-79ba93237
 [Michael Bronstein]: https://www.cs.ox.ac.uk/people/michael.bronstein/
 [Jian Tang]: https://jian-tang.com/
-[GraphAny]: http://arxiv.org/abs/2405.20445
+[GraphAny]: https://openreview.net/pdf?id=1Qpt43cqhg
 
 ## Overview ##
 
-![Foundation Model on Node Classification](assets/fm_on_node_classification.png)
+![Fully-Inductive Model on Node Classification](assets/fully_ind_node_cla.png)
 
-GraphAny is a foundation model for node classification. A single pre-trained GraphAny
+GraphAny is a fully-inductive model for node classification. A single trained GraphAny
 model performs node classification tasks on any graph with any feature and label
-spaces. Performance-wise, averaged on 30+ graphs, a single pre-trained GraphAny model
-is better **_in inference mode_** than many supervised models (e.g., MLP, GCN, GAT)
+spaces. Performance-wise, averaged on 30+ graphs, a single trained GraphAny model **_in inference mode_** 
+is better than many transductive (supervised) models (e.g., MLP, GCN, and GAT)
 trained specifically for each graph. Following the pretrain-inference paradigm of
 foundation models, you can perform training from scratch and inference on 30 datasets
-as shown in [Training from scratch](#training-foundation-models-from-scratch).
+as shown in [Training from scratch](#training-from-scratch).
 
 This repository is based on PyTorch 2.1, Pytorch-Lightning 2.2, PyG 2.4, DGL 2.1, and Hydra 1.3.
 
@@ -74,7 +74,7 @@ conda env create -f environment_cpu.yaml
 
 ## Reproduce Our Results ##
 
-### Training Foundation Models from Scratch ###
+### Training GraphAny from Scratch ###
 
 This section would detail how users can train GraphAny on one dataset (Cora,
 Wisconsin, Arxiv, or Product) and evaluate on all 31 datasets. You can reproduce
@@ -111,12 +111,12 @@ _dataset_lookup:
     eval: [ Cora, Citeseer ]
 ```
 
-**Step 2** _(optional)_: Define your dataset processing logic in graph_any/data.py. Please go through the [Bring Your Own Dataset](#bring-your-own-dataset) section.
+**Step 2** _(optional)_: Define your dataset processing logic in graph_any/data.py.
 This step is necessary only if you are not using our pre-processed data. If you
 choose to use our provided datasets, you can skip this step and proceed directly to
 Step 3.
 
-**Step 3**: Run inference with pre-trained model using command:
+**Step 3**: Inference using pre-trained model using command:
 
 ```bash
 python graphany/run.py prev_ckpt=checkpoints/graph_any_arxiv.pt total_steps=0 dataset=CoraCiteInference
@@ -378,12 +378,10 @@ This setup will allow you to track and visualize metrics dynamically.
 If you find this codebase useful in your research, please cite the paper.
 
 ```bibtex
-@article{zhao2024graphany,
-      title={GraphAny: A Foundation Model for Node Classification on Any Graph}, 
-      author={Jianan Zhao and Hesham Mostafa and Mikhail Galkin and Michael Bronstein and Zhaocheng Zhu and Jian Tang},
-      year={2024},
-      eprint={2405.20445},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
+@article{zhao2025graphany,
+  title = {Fully-inductive Node Classification on Arbitrary Graphs},
+  author = {Jianan Zhao and Zhaocheng Zhu and Mikhail Galkin and Hesham Mostafa and Michael Bronstein and Jian Tang},
+  journal = {International Conference on Learning Representations},
+  year = {2025}
 }
 ```
